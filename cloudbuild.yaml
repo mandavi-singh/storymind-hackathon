@@ -1,0 +1,73 @@
+steps:
+  # ── Build & push backend ───────────────────────────────────────────────────
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - -t
+      - "gcr.io/$PROJECT_ID/storymind-backend:$COMMIT_SHA"
+      - ./backend
+    id: build-backend
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - "gcr.io/$PROJECT_ID/storymind-backend:$COMMIT_SHA"
+    id: push-backend
+    waitFor: [build-backend]
+
+  # ── Deploy backend to Cloud Run ───────────────────────────────────────────
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - storymind-backend
+      - --image=gcr.io/$PROJECT_ID/storymind-backend:$COMMIT_SHA
+      - --region=us-central1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --memory=1Gi
+      - --cpu=1
+      - --set-env-vars=GCP_PROJECT=$PROJECT_ID,GCP_LOCATION=us-central1
+      - --set-secrets=GEMINI_API_KEY=gemini-api-key:latest
+    id: deploy-backend
+    waitFor: [push-backend]
+
+  # ── Build & push frontend ─────────────────────────────────────────────────
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - -t
+      - "gcr.io/$PROJECT_ID/storymind-frontend:$COMMIT_SHA"
+      - ./frontend
+    id: build-frontend
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - "gcr.io/$PROJECT_ID/storymind-frontend:$COMMIT_SHA"
+    id: push-frontend
+    waitFor: [build-frontend]
+
+  # ── Deploy frontend to Cloud Run ──────────────────────────────────────────
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - storymind-frontend
+      - --image=gcr.io/$PROJECT_ID/storymind-frontend:$COMMIT_SHA
+      - --region=us-central1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --memory=512Mi
+      - --set-env-vars=NEXT_PUBLIC_BACKEND_URL=https://storymind-backend-<HASH>-uc.a.run.app
+    id: deploy-frontend
+    waitFor: [push-frontend]
+
+images:
+  - "gcr.io/$PROJECT_ID/storymind-backend:$COMMIT_SHA"
+  - "gcr.io/$PROJECT_ID/storymind-frontend:$COMMIT_SHA"
+
+options:
+  logging: CLOUD_LOGGING_ONLY

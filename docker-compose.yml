@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GCP_PROJECT=${GCP_PROJECT}
+      - GCP_LOCATION=us-central1
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud:ro
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+    depends_on:
+      - backend
