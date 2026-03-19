@@ -2,85 +2,61 @@
 
 > **Gemini Live Agent Challenge — Creative Storyteller Category**
 
-StoryMind is a multimodal AI agent that generates personalized, illustrated, and narrated storybooks for children in real-time. A parent enters their child's name, age, interests, and any accessibility needs — and StoryMind streams back a complete storybook: text, AI-generated illustrations (Imagen 3), and audio narration (Cloud TTS), all interleaved in one seamless flow.
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-StoryMind-orange)](https://storymind-hackathon-1.onrender.com)
+[![Backend](https://img.shields.io/badge/⚡_Backend-Live-green)](https://storymind-hackathon.onrender.com/health)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+
+---
+
+## 🌟 What is StoryMind?
+
+StoryMind is a multimodal AI agent that generates **personalized, illustrated, and narrated storybooks** for children in real-time.
+
+A parent enters their child's name, age, interests, and accessibility needs — and StoryMind streams back a complete storybook with:
+- 📖 **AI-generated story text** (Gemini 2.5 Flash)
+- 🎨 **Custom illustrations** per page
+- 🔊 **Audio narration** in Hindi, English & Spanish (gTTS)
+- ♿ **Accessibility support** (dyslexia-friendly, visual impairment)
+
+All delivered as one seamless, interleaved multimodal stream. ✨
+
+---
+
+## 🎯 Live Demo
+
+👉 **[https://storymind-hackathon-1.onrender.com](https://storymind-hackathon-1.onrender.com)**
+
+Try it:
+1. Enter a child's name (e.g. "Aarav")
+2. Pick age, interests, language
+3. Click **"Create My Story!"**
+4. Watch the story stream page by page
+5. Click 🔊 to hear it narrated
 
 ---
 
 ## ✨ Features
 
-- **Personalized stories** — name, age, interests, language (English / Hindi / Spanish)
-- **Accessibility-first** — dyslexia-friendly text, enriched narration for visual impairment
-- **Interleaved multimodal output** — text + image + audio stream page-by-page
-- **Auto-narration** — Cloud TTS reads each page aloud automatically
-- **Storybook UI** — page-turn animations, progress dots, mute toggle
-- **Fully deployed on Google Cloud** — Cloud Run, Secret Manager, Firestore
+| Feature | Description |
+|---------|-------------|
+| 🤖 **AI Story Generation** | gemini-3-flash-preview writes personalized stories |
+| 🎨 **Dynamic Illustrations** | Colorful, mood-matched illustrations per page |
+| 🔊 **Multilingual Narration** | Audio in English, Hindi 🇮🇳, Spanish 🇪🇸 |
+| ♿ **Accessibility First** | Dyslexia-friendly text, enriched narration |
+| ⚡ **Real-time Streaming** | Pages stream one by one as generated |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer       | Technology                                      |
-|-------------|-------------------------------------------------|
-| AI story    | gemini-3-flash-preview      |
-| Illustrations | Imagen 3 via Vertex AI                        |
-| Narration   | Google Cloud Text-to-Speech                     |
-| Backend     | FastAPI (Python) — Cloud Run                    |
-| Frontend    | Next.js 14 (React) — Cloud Run                  |
-| Secrets     | Google Secret Manager                           |
-| Storage     | Firestore (story history)                       |
-| CI/CD       | Cloud Build (`cloudbuild.yaml`)                 |
-
----
-
-## 🚀 Quick Start (Local)
-
-### Prerequisites
-- Python 3.12+, Node 20+, Docker
-- `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com)
-- GCP project with billing enabled, `gcloud` authenticated
-
-### Option A — Docker Compose (easiest)
-```bash
-git clone https://github.com/YOUR_USERNAME/storymind
-cd storymind
-
-export GEMINI_API_KEY=your_key_here
-export GCP_PROJECT=your_project_id
-
-docker compose up
-```
-Open http://localhost:3000
-
-### Option B — Run directly
-```bash
-# Backend
-cd backend
-pip install -r requirements.txt
-GEMINI_API_KEY=xxx GCP_PROJECT=yyy uvicorn main:app --reload --port 8080
-
-# Frontend (new terminal)
-cd frontend
-npm install
-NEXT_PUBLIC_BACKEND_URL=http://localhost:8080 npm run dev
-```
-
----
-
-## ☁️ Deploy to Google Cloud
-
-```bash
-export GCP_PROJECT=your-project-id
-export GEMINI_API_KEY=your-key
-bash deploy.sh
-```
-
-This script:
-1. Enables required GCP APIs
-2. Stores your Gemini key in Secret Manager
-3. Builds and deploys backend to Cloud Run
-4. Builds and deploys frontend to Cloud Run
-
-For CI/CD: connect your GitHub repo to Cloud Build and use `cloudbuild.yaml`.
+| Layer | Technology |
+|-------|-----------|
+| 🤖 AI Story | gemini-3-flash-preview (google-generativeai SDK) |
+| 🔊 Audio | gTTS (free multilingual TTS) |
+| ⚙️ Backend | FastAPI (Python) — Render.com |
+| 🎨 Frontend | Next.js 14 (React) — Render.com |
+| 🌊 Streaming | Server-Sent Events (SSE) |
+| ☁️ Cloud | Google Cloud (Gemini API) |
 
 ---
 
@@ -90,62 +66,47 @@ For CI/CD: connect your GitHub repo to Cloud Build and use `cloudbuild.yaml`.
 User Browser
      │  HTTPS
      ▼
-Next.js Frontend (Cloud Run)
-     │  REST + SSE stream
+Next.js Frontend (Render)
+     │  SSE Stream
      ▼
-FastAPI Backend (Cloud Run)
-  ├── Gemini 2.0 Flash ──→ Story text + image prompts
-  ├── Imagen 3 (Vertex AI) ──→ Illustrations (base64)
-  ├── Cloud TTS ──→ Audio narration (base64 MP3)
-  └── Firestore ──→ Story history
-     │
-Secret Manager (GEMINI_API_KEY)
-```
-
-**Key design choice**: The backend streams Server-Sent Events (SSE). Each page's image and audio are generated in parallel (`asyncio.gather`), then streamed to the browser as JSON events. The frontend renders each page as it arrives — true interleaved multimodal output.
-
----
-
-## 📋 Judging Criteria Alignment
-
-| Criterion | How StoryMind addresses it |
-|-----------|---------------------------|
-| **Innovation & Multimodal UX (40%)** | Breaks the text-box paradigm: voice narration + AI images + story text stream simultaneously. Child hears the story while seeing custom illustrations. |
-| **Technical Implementation (30%)** | Uses `google-generativeai` SDK (Gemini 2.0 Flash), Vertex AI (Imagen 3), Cloud TTS, Firestore, Secret Manager, Cloud Run. Async streaming with `asyncio.gather` for parallel image/audio gen. |
-| **Demo & Presentation (30%)** | Live streaming demo is visually compelling. Architecture diagram in README. Cloud Run deployment proof via `deploy.sh` + Cloud Console. |
-
----
-
-## 📁 Project Structure
-
-```
-storymind/
-├── backend/
-│   ├── main.py          # FastAPI app, Gemini + Imagen + TTS
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── src/app/
-│   │   ├── page.tsx     # Main UI (form + storybook reader)
-│   │   ├── layout.tsx
-│   │   └── globals.css
-│   ├── next.config.js
-│   └── Dockerfile
-├── cloudbuild.yaml       # CI/CD pipeline
-├── docker-compose.yml    # Local dev
-├── deploy.sh             # One-click GCP deploy
-└── README.md
+FastAPI Backend (Render)
+     ├── Gemini 2.5 Flash → Story text
+     ├── SVG Generator   → Illustrations
+     └── gTTS            → Audio narration
 ```
 
 ---
 
-## 🌟 Bonus Points Checklist
+## 🚀 Run Locally
 
-- [x] Infrastructure-as-code: `deploy.sh` + `cloudbuild.yaml`
-- [ ] Blog post (add link after writing)
-- [ ] GDG profile (add link after signing up)
+```bash
+git clone https://github.com/mandavi-singh/storymind-hackathon.git
+cd storymind-hackathon
+cp .env.example .env
+# Add GEMINI_API_KEY to .env
+docker compose up --build
+```
+Open **http://localhost:3000**
+
+---
+
+## 🏆 Judging Criteria
+
+| Criterion | StoryMind |
+|-----------|-----------|
+| **Innovation & Multimodal UX (40%)** | Real-time story + illustrations + audio streamed together |
+| **Technical Implementation (30%)** | Gemini SDK, SSE streaming, multilingual TTS, cloud deployed |
+| **Demo & Presentation (30%)** | Live demo + health endpoint + architecture diagram |
+
+---
+
+## 🔗 Links
+
+- 🌐 **Live App**: [storymind-hackathon-1.onrender.com](https://storymind-hackathon-1.onrender.com)
+- ⚡ **API Health**: [storymind-hackathon.onrender.com/health](https://storymind-hackathon.onrender.com/health)
+- 💻 **GitHub**: [github.com/mandavi-singh/storymind-hackathon](https://github.com/mandavi-singh/storymind-hackathon)
 
 ---
 
 ## 📄 License
-MIT
+MIT © 2026 StoryMind
